@@ -2,7 +2,7 @@
 import pkg from 'sequelize';
 const { DataTypes, Model } = pkg;
 export const FileModel = (sequelize) => {
-  const File = sequelize.define('File', {
+  const File = sequelize.define('file', {
     id: {
       type: DataTypes.INTEGER,
       autoIncrement: true,

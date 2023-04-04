@@ -5,8 +5,6 @@ import { FileModel } from './src/models/File.js';
 import { sequelizeConfig } from './src/config/db.js';
 import dotenv from 'dotenv'
 import jwt from 'jsonwebtoken'
-import bodyParser from 'body-parser'
-import { userCredentials } from './src/middlewares/auth.js';
 
 
 const app = express();
@@ -18,72 +16,57 @@ app.use(express.json()),
 app.use(express.urlencoded({ extended: false }))
 
 
+app.post('/signin', async (req, res) => {
+  
+    const { email, password } = req.body;
+    const user = await User.findOne({where: {email}} )
+    
+ 
+    if (email === user.email && 
+        password === user.password) {
+        
+    
+        const accessToken = jwt.sign({
+            email: user.email
+        }, process.env.ACCESS_TOKEN_SECRET, {
+            expiresIn: '10m'
+        });
 
-app.post('/login', (req, res) => {
-  // Destructuring username & password from body
-  const { username, password } = req.body;
+        
+        const refreshToken = jwt.sign({
+            email: user.email,
+        }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '1d' });
+  
+     
+        return res.json({ 
+                accessToken,
+                accessTokenTtl: process.env.ACCESS_TOKEN_TTL, //TODO - Get from .env
+                refreshToken,
+                refreshTokenTtl: process.env.REFRESH_TOKEN_TTL
+         });
+    }
+    else {
+        return res.status(406).json({ 
+            message: 'Invalid credentials' });
+    }
+  })
+  
+ 
+app.post('/signup', async (req, res) => {
+    const { email, password } = req.body;
 
-  // Checking if credentials match
-  if (username === userCredentials.username && 
-      password === userCredentials.password) {
-      
-      //creating a access token
-      const accessToken = jwt.sign({
-          username: userCredentials.username,
-          email: userCredentials.email
-      }, process.env.ACCESS_TOKEN_SECRET, {
-          expiresIn: '10m'
-      });
-      // Creating refresh token not that expiry of refresh 
-      //token is greater than the access token
-      
-      const refreshToken = jwt.sign({
-          username: userCredentials.username,
-      }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '1d' });
+    const user = await User.findOne({ where: {email} });
+    if ( user ) {
+      throw new Error ("User is already exist")
+    } 
+  const newUser = await User.create({
+    email,
+    password
+  })
+  res.send(newUser)
 
-      // Assigning refresh token in http-only cookie 
-      res.cookie('jwt', refreshToken, { httpOnly: true, 
-          sameSite: 'None', secure: true, 
-          maxAge: 24 * 60 * 60 * 1000 });
-      return res.json({ accessToken });
-  }
-  else {
-      // Return unauthorized error if credentials don't match
-      return res.status(406).json({ 
-          message: 'Invalid credentials' });
-  }
-})
-
-app.post('/new_token', (req, res) => {
-  if (req.cookies?.jwt) {
-
-      // Destructuring refreshToken from cookie
-      const refreshToken = req.cookies.jwt;
-
-      // Verifying refresh token
-      jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, 
-      (err, decoded) => {
-          if (err) {
-
-              // Wrong Refesh Token
-              return res.status(406).json({ message: 'Unauthorized' });
-          }
-          else {
-              // Correct token we send a new access token
-              const accessToken = jwt.sign({
-                  username: userCredentials.username,
-                  email: userCredentials.email
-              }, process.env.ACCESS_TOKEN_SECRET, {
-                  expiresIn: '10m'
-              });
-              return res.json({ accessToken });
-          }
-      })
-  } else {
-      return res.status(406).json({ message: 'Unauthorized' });
-  }
-})
-
+  })
+  
 
 const sequelize = new Sequelize(sequelizeConfig);
 
@@ -98,9 +81,9 @@ sequelize
 
 const User = UserModel(sequelize);
 const File = FileModel(sequelize);
-
-User.sync();
-File.sync();
+ 
+User.sync({force:true});
+File.sync({force:true});
 
 app.listen(port, () => {
   console.log(`App listening on port ${port}`);
