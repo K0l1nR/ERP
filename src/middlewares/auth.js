@@ -1,8 +1,8 @@
-import Express from "express";
+import Express from 'express';
 
 
 export const userCredentials = {
-    username: '',
-    password: ''
+  username: '',
+  password: ''
 
-}
+};

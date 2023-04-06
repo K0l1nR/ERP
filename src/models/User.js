@@ -1,13 +1,13 @@
 
 import pkg from 'sequelize';
-const { DataTypes, Model, Sequelize } = pkg;
+const { DataTypes } = pkg;
 export const UserModel = (sequelize) => {
   const User = sequelize.define('user', {
     email: {
       type: DataTypes.STRING,
       allowNull: false,
       primaryKey: true,
-      unique: true
+      unique: true,
     },
     password: {
       type: DataTypes.STRING,

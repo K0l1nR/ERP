@@ -1,6 +1,6 @@
 
 import pkg from 'sequelize';
-const { DataTypes, Model } = pkg;
+const { DataTypes } = pkg;
 export const FileModel = (sequelize) => {
   const File = sequelize.define('file', {
     id: {
@@ -10,15 +10,13 @@ export const FileModel = (sequelize) => {
       primaryKey: true,
     },
     type: {
-        type: DataTypes.STRING,
+      type: DataTypes.STRING,
     },
     name: {
-      type: DataTypes.TEXT,
-      allowNull: false,
+      type: DataTypes.STRING,
     },
-    type: {
-      type: DataTypes.BLOB("long"),
-     
+    data: {
+      type: DataTypes.BLOB,
     },
   });
   return File;

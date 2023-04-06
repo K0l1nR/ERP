@@ -1,8 +1,8 @@
 
 export const sequelizeConfig = {
-   database: 'ERP',
-   username: 'admin',
-   password: 'admin',
-   host: 'localhost',
-   dialect: 'mysql'
-}
+  database: 'ERP',
+  username: 'admin',
+  password: 'admin',
+  host: 'localhost',
+  dialect: 'mysql'
+};
